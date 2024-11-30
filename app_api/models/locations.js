@@ -31,7 +31,11 @@ const reviewSchema = new mongoose.Schema({
   createdOn: {
       type: Date,
       'default': Date.now
-  }
+  },
+  _id: { // _id를 명시적으로 추가하여 자동 생성
+    type: mongoose.Schema.Types.ObjectId,
+    default: () => new mongoose.Types.ObjectId(),
+}
 });
 
 
@@ -43,7 +47,7 @@ const locationSchema = new mongoose.Schema({
   address: String,
   rating: {
     type: Number,
-    'default': 0,
+    'default': 1,
     min: 1,
     max: 5
   },
@@ -51,6 +55,7 @@ const locationSchema = new mongoose.Schema({
   coords: {
     type: { type: String},
     index: [Number]
+
   },
   openingTimes: [openingTimesSchema],
   reviews: [reviewSchema]

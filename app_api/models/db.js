@@ -33,11 +33,22 @@ if (process.platform === 'win32') {
   });
 }
 
-const gracefulShutdown = (msg, callback) => {
-  mongoose.connection.close( () => {
+// const gracefulShutdown = (msg, callback) => {
+//   mongoose.connection.close( () => {
+//     console.log(`Mongoose disconnected through ${msg}`);
+//     callback();
+//   });
+// };
+
+const gracefulShutdown = async (msg, callback) => {
+  try {
+    await mongoose.connection.close();
     console.log(`Mongoose disconnected through ${msg}`);
     callback();
-  });
+  } catch (error) {
+    console.error(`Error during Mongoose disconnection: ${error}`);
+    callback(error);
+  }
 };
 
 process.once('SIGUSR2', () => {
@@ -59,3 +70,5 @@ process.on('SIGTERM', () => {
 connect();
 
 require('./locations');
+
+require('./users')

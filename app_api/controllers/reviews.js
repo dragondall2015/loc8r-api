@@ -1,5 +1,42 @@
 const mongoose = require('mongoose');
 const Loc = mongoose.model('Location');
+const User = mongoose.model('User');
+
+// const getAuthor = (req, res, callback) => {
+//   if (req.auth && req.auth.email) {
+//     User
+//       .findOne({ email: req.auth.email })
+//       .exec((err, user) => {
+//         if (!user) {
+//           return res.status(404).json({ "message": "User not found" });
+//         } else if (err) {
+//           console.log(err);
+//           return res.status(404).json(err);
+//         }
+//         callback(req, res, user.name);
+//       });
+//   } else {
+//     return res.status(404).json({ "message": "User not found" });
+//   }
+// };
+const getAuthor = async (req, res) => {
+  if (req.auth && req.auth.email) {
+    try {
+      // 이메일로 사용자 조회
+      const user = await User.findOne({ email: req.auth.email }).exec();
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+      return user.name; // 사용자 이름 반환
+    } catch (err) {
+      console.error(err);
+      return res.status(400).json(err); // 오류 반환
+    }
+  } else {
+    return res.status(404).json({ message: "인증 정보가 없습니다." });
+  }
+};
+
 
 const doSetAverageRating = async (location) => {
   if (location.reviews && location.reviews.length > 0) {
@@ -18,21 +55,61 @@ const doSetAverageRating = async (location) => {
   }
 };
 
+// const doAddReview = (req, res, location, author) => {
+//   if (!location) {
+//     res
+//       .status(404)
+//       .json({ "message": "Location not found" });
+//   } else {
+//     const { rating, reviewText } = req.body;
+//     location.reviews.push({
+//       author,
+//       rating,
+//       reviewText
+//     });
+//     location.save((err, location) => {
+//       if (err) {
+//         return res
+//           .status(400)
+//           .json(err);
+//       } else {
+//         updateAverageRating(location._id);
+//         const thisReview = location.reviews.slice(-1).pop();
+//         res
+//           .status(201)
+//           .json(thisReview);
+//       }
+//     });
+//   }
+// };
 const doAddReview = async (req, res, location) => {
-  if (!location) {
-    return res.status(404).json({ "message": "Location not found" });
-  }
+  console.log("Received review data:", req.body);
 
   const { author, rating, reviewText } = req.body;
-  location.reviews.push({ author, rating, reviewText });
+
+  if (!author || !reviewText || typeof rating !== 'number') {
+    console.error("Invalid review data:", req.body);
+    return res.status(400).json({ "message": "Invalid review data" });
+  }
+
+  const newReview = {
+    author,
+    rating,
+    reviewText,
+    _id: new mongoose.Types.ObjectId(),
+    createdOn: new Date()
+  };
 
   try {
-    const updatedLocation = await location.save();
-    await updateAverageRating(updatedLocation._id);
-    const thisReview = updatedLocation.reviews.slice(-1).pop();
-    return res.status(201).json(thisReview);
+    location.reviews.push(newReview);
+    const savedLocation = await location.save();
+    console.log("Review saved successfully:", savedLocation.reviews);
+    updateAverageRating(savedLocation._id);
+    const thisReview = savedLocation.reviews.slice(-1).pop();
+    res.status(201).json(thisReview);
   } catch (err) {
-    return res.status(400).json(err);
+    console.error("Error saving review:", err);
+    res.status(400).json(err);
   }
 };
 
@@ -47,23 +124,55 @@ const updateAverageRating = async (locationId) => {
   }
 };
 
+// const reviewsCreate = (req, res) => {
+//   getAuthor(req, res, (req, res, userName) => {
+//     const locationId = req.params.locationid;
+//     if (locationId) {
+//       Loc
+//         .findById(locationId)
+//         .select('reviews')
+//         .exec((err, location) => {
+//           if (err) {
+//             res
+//               .status(400)
+//               .json(err);
+//           } else {
+//             doAddReview(req, res, location, userName);
+//           }
+//         });
+//     } else {
+//       res
+//         .status(404)
+//         .json({ "message": "Location not found" });
+//     }
+//   });
+// };
 const reviewsCreate = async (req, res) => {
-  const locationId = req.params.locationid;
-  if (!locationId) {
-    return res.status(404).json({ "message": "Location not found" });
-  }
-
   try {
-    const location = await Loc.findById(locationId).select('reviews').exec();
-    if (location) {
-      await doAddReview(req, res, location);
-    } else {
-      return res.status(404).json({ "message": "Location not found" });
+    const userName = await getAuthor(req, res);
+    if (!userName) {
+      return; // getAuthor에서 이미 오류 처리
     }
+
+    const locationId = req.params.locationid;
+    if (!locationId) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    const location = await Loc.findById(locationId).select("reviews").exec();
+    if (!location) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+
+    console.log("Received review data:", req.body); // 클라이언트로부터 받은 데이터 로그
+    await doAddReview(req, res, location, userName);
   } catch (err) {
+    console.error("Error in reviewsCreate:", err);
     return res.status(400).json(err);
   }
 };
+
+
 
 const reviewsReadOne = async (req, res) => {
   try {
