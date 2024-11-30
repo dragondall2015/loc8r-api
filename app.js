@@ -15,56 +15,56 @@ const apiRouter = require('./app_api/routes/index');
 
 const app = express();
 
-// // CORS 설정 (가장 위에 위치)
-// const cors = require('cors');
-// app.use(cors({
-//   origin: 'http://localhost:4200', // 허용할 프론트엔드 URL
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
-//   allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
-// }));
-// app.options('*', cors()); // 모든 OPTIONS 요청 허용
-
-// // View engine setup
-// app.set('views', path.join(__dirname, 'app_server', 'views'));
-// app.set('view engine', 'pug');
-
-// // Middleware
-// app.use(logger('dev'));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// // Static files for Angular application
-// app.use(express.static(path.join(__dirname, 'app_public', 'build')));
-
-// // Passport initialization
-// app.use(passport.initialize());
-
-//19 ~42 대체 이다 
+// CORS 설정 (가장 위에 위치)
 const cors = require('cors');
-const corsOptions = {
-  origin: '*',
-  optionsSuccessStatus: 200 // For legacy browser support
-};
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: 'http://localhost:4200', // 허용할 프론트엔드 URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
+  allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
+}));
+app.options('*', cors()); // 모든 OPTIONS 요청 허용
 
-app.use('/api', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-with, Content-type, Accept, Authorization');
-  next();
-});
-
+// View engine setup
 app.set('views', path.join(__dirname, 'app_server', 'views'));
 app.set('view engine', 'pug');
+
+// Middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Static files for Angular application
 app.use(express.static(path.join(__dirname, 'app_public', 'build')));
+
+// Passport initialization
 app.use(passport.initialize());
-//19 ~42 대체 이다 
+
+// //19 ~42 대체 이다 
+// const cors = require('cors');
+// const corsOptions = {
+//   origin: '*',
+//   optionsSuccessStatus: 200 // For legacy browser support
+// };
+// app.use(cors(corsOptions));
+
+// app.use('/api', (req, res, next) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-with, Content-type, Accept, Authorization');
+//   next();
+// });
+
+// app.set('views', path.join(__dirname, 'app_server', 'views'));
+// app.set('view engine', 'pug');
+// app.use(logger('dev'));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: false }));
+// app.use(cookieParser());
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'app_public', 'build')));
+// app.use(passport.initialize());
+// //19 ~42 대체 이다 
 
 // Routes
 app.use('/users', usersRouter);
