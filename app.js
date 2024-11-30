@@ -17,9 +17,14 @@ const app = express();
 
 // CORS 설정 (가장 위에 위치)
 const cors = require('cors');
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['https://fabulous-choux-ce3092.netlify.app'];
+
 app.use(cors({
   // origin: 'http://localhost:4200', // 허용할 프론트엔드 URL
-  origin: 'https://loc8r-api-5ad7.onrender.com',
+  origin: 'https://loc8r-api-5ad7.onrender.com', // 허용할 프론트엔드 URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
   allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
 }));
